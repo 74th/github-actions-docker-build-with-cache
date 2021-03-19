@@ -46,7 +46,7 @@ jobs:
 
       - name: push latest
         run: |
-          if [ "${{ github.ref }}" == "refs/head/main" ]; then
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             docker tag ${{ env.TAG }} ${IMAGE}:latest
             echo ${IMAGE}:latest
           fi

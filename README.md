@@ -1,0 +1,60 @@
+# sample of docker build by Github Actions
+
+[.github/workflows/docker-build.yaml](.github/workflows/docker-build.yaml)
+
+```yaml
+name: build-docker
+on: push
+
+env:
+  IMAGE: 74th/githjub-actions-docker-build-with-cache
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            ${{ github.ref }}-${{ github.sha }}
+            ${{ github.ref }}
+            refs/head/main
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: create tag
+        run: |
+          SHA=${{ github.sha }}
+          export TAG=${IMAGE}:$(TZ=UTC-9 date '+%Y%m')-${SHA:0:7}
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo TAG $TAG
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: false
+          tags: ${{ env.TAG }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+```
+
+## features
+
+- using Caches of Github Actions
+- using BuildKit
+
+## references
+
+- docker docs Optimizing the workflow https://docs.docker.com/ci-cd/github-actions/#optimizing-the-workflow
+- Github Action Cache https://github.com/marketplace/actions/cache

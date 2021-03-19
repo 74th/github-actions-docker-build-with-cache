@@ -43,3 +43,10 @@ jobs:
           tags: ${{ env.TAG }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: push latest
+        run: |
+          if [ "${{ github.ref }}" == "refs/head/main" ]; then
+            docker tag ${{ env.TAG }} ${IMAGE}:latest
+            echo ${IMAGE}:latest
+          fi

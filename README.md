@@ -33,9 +33,15 @@ jobs:
       - name: create tag
         run: |
           SHA=${{ github.sha }}
-          export TAG=${IMAGE}:$(TZ=UTC-9 date '+%Y%m')-${SHA:0:7}
-          echo "TAG=$TAG" >> $GITHUB_ENV
+          TAG=${IMAGE}:$(TZ=UTC-9 date '+%Y%m')-${SHA:0:7}
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            LATEST=${IMAGE}:latest
+            echo "TAGS=$TAG,$LATEST" >> $GITHUB_ENV
+          else
+            echo "TAGS=$TAG" >> $GITHUB_ENV
+          fi
           echo TAG $TAG
+
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
@@ -44,15 +50,16 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: false
-          tags: ${{ env.TAG }}
+          tags: ${{ env.TAGS }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 ```
 
 ## features
 
-- using Caches of Github Actions
+- using caches of Github Actions
 - using BuildKit
+- pushing latest tag when building main branch
 
 ## references
 
